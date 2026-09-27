@@ -54,17 +54,83 @@ def test_invalid_wheel_and_command_do_not_replace_valid_input():
     assert all(math.isfinite(value) for value in (output.estimate.speed_mps, output.estimate.distance_m, *output.xyz))
 
 
-def test_stream_of_late_commands_cannot_suppress_watchdog():
+def test_stream_of_new_but_late_commands_recovers_without_watchdog_runaway():
     bridge, _ = make_bridge()
     step(bridge, 0.)
     assert bridge.tick(stamp(1.)+CLOCK_OFFSET) is not None
     outputs = []
     for i in range(1, 11):
         clock = stamp(1.+i*.05)+CLOCK_OFFSET
-        assert bridge.receive_command(stamp(i*.05), 1, clock) is None
-        outputs.append(bridge.tick(clock))
+        outputs.append(bridge.receive_command(stamp(i*.05), 1, clock))
+        # A fresh command is now the arrival-clock owner, so the watchdog
+        # must not keep projecting farther ahead between 20 Hz commands.
+        assert bridge.tick(clock) is None
     assert all(output is not None for output in outputs)
-    assert outputs[-1].estimate.stamp_ns == stamp(1.5)
+    assert all(b.estimate.stamp_ns > a.estimate.stamp_ns
+               for a, b in zip(outputs, outputs[1:]))
+    assert outputs[-1].estimate.stamp_ns == stamp(1.)+10
+    assert outputs[-1].diagnostics["trigger"] == "command"
+
+
+def test_permanently_late_commands_resume_model_watchdog_after_bounded_catchup():
+    bridge, _ = make_bridge()
+    step(bridge, 0., speed=5., command=2)
+    assert bridge.tick(stamp(3.)+CLOCK_OFFSET) is not None
+    first_state = bridge.estimator.stamp_ns
+    watchdog = []
+    for i in range(1, 51):
+        clock = stamp(3.+i*.05)+CLOCK_OFFSET
+        # The header advances at the same rate as receive time but stays
+        # three seconds behind state: catch-up cannot complete in 1.5 s.
+        bridge.receive_command(stamp(i*.05), 2, clock)
+        output = bridge.tick(clock)
+        if output is not None:
+            watchdog.append(output)
+    assert watchdog, "bounded recovery must return to model-only watchdog"
+    assert bridge.estimator.stamp_ns > first_state+500_000_000
+    assert watchdog[-1].diagnostics["trigger"] == "watchdog"
+
+
+def test_header_ahead_then_receive_pause_recovers_on_new_commands():
+    bridge, _ = make_bridge()
+    first = step(bridge, 0., speed=5., command=2)
+    # An anomalously early header is followed by a 0.95 s receive pause.
+    ahead = bridge.receive_command(stamp(.50), 2, stamp(.05)+CLOCK_OFFSET)
+    assert ahead.estimate.stamp_ns == stamp(.50)
+    outputs = [(stamp(.05)+CLOCK_OFFSET, ahead)]
+    for i in range(3, 51):
+        clock = stamp(i*.02)+CLOCK_OFFSET
+        output = bridge.tick(clock)
+        if output is not None:
+            outputs.append((clock, output))
+    state_before_return = bridge.estimator.stamp_ns
+    assert state_before_return > stamp(.55)
+    # The first new wheel sample is older than the projected state. It must
+    # not be corrected into the estimator as though it were current.
+    clock = stamp(1.05)+CLOCK_OFFSET
+    bridge.receive_wheel("front", stamp(.55), 5., clock)
+    bridge.receive_wheel("rear", stamp(.55), 5., clock)
+    recovered = bridge.receive_command(stamp(.55), 2, clock)
+    assert recovered is not None
+    assert recovered.estimate.stamp_ns == state_before_return+1
+    assert recovered.estimate.source == "model"
+    assert "front_stale_or_future" in recovered.estimate.reasons
+    outputs.append((clock, recovered))
+    for i in range(1, 25):
+        clock = stamp(1.05+i*.05)+CLOCK_OFFSET
+        header = stamp(.55+i*.05)
+        bridge.receive_wheel("front", header, 5., clock)
+        bridge.receive_wheel("rear", header, 5., clock)
+        output = bridge.receive_command(header, 2, clock)
+        assert output is not None
+        outputs.append((clock, output))
+    assert all(b.estimate.stamp_ns > a.estimate.stamp_ns
+               for (_, a), (_, b) in zip(outputs, outputs[1:]))
+    assert max((b_clock-a_clock)/1e9 for (a_clock, _), (b_clock, _) in
+               zip(outputs, outputs[1:])) <= .071
+    assert outputs[-1][1].estimate.source == "wheels"
+    assert not outputs[-1][1].diagnostics["command_stale"]
+    assert outputs[-1][1].estimate.speed_mps > 4.9
 
 
 def test_manual_chainage_and_output_transform_are_applied_once():

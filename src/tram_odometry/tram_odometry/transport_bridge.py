@@ -73,6 +73,10 @@ class BridgeBase:
         self.command, self.command_stamp_ns = 0, 0
         self.first_input_ns = self.clock_anchor_ns = self.header_anchor_ns = 0
         self.last_command_clock_ns = 0
+        # A finite grace period lets delayed headers catch a watchdog forecast.
+        # A permanently lagging command stream must eventually fall back to
+        # model-only watchdog outputs instead of freezing state time forever.
+        self.late_command_catchup_started_ns = 0
         self.last_output = None
         self.history = deque(maxlen=1000)
         self.fixes = deque(maxlen=100)
@@ -133,13 +137,25 @@ class BridgeBase:
             return None
         self._note_first_input(stamp_ns, clock_ns)
         # The NEW command cannot influence the interval that ended at its stamp.
-        output = self._advance(stamp_ns, "command")
+        # A receive-time pause can let the watchdog project past a command's
+        # header stamp. Keep the state clock monotone, but publish a tiny
+        # recovery step for each newly arrived command while its header catches
+        # up. Otherwise _advance returns None forever, the command receipt
+        # clock is never refreshed, and the watchdog keeps racing ahead.
+        late = self.estimator.stamp_ns and stamp_ns <= self.estimator.stamp_ns
+        if late and not self.late_command_catchup_started_ns:
+            self.late_command_catchup_started_ns = clock_ns
+        if not late:
+            self.late_command_catchup_started_ns = 0
+        catching_up = (late and clock_ns-self.late_command_catchup_started_ns <= 1_500_000_000)
+        target_ns = self.estimator.stamp_ns + 1 if catching_up else stamp_ns
+        output = self._advance(target_ns, "command")
         self.command, self.command_stamp_ns = command, stamp_ns
         if output is not None:
             self.last_command_clock_ns = clock_ns
         # Do not move the output clock backwards after a slightly late command.
-        if stamp_ns >= self.estimator.stamp_ns:
-            self.header_anchor_ns, self.clock_anchor_ns = stamp_ns, clock_ns
+        if output is not None:
+            self.header_anchor_ns, self.clock_anchor_ns = self.estimator.stamp_ns, clock_ns
         return output
 
     def tick(self, clock_ns):
@@ -152,7 +168,5 @@ class BridgeBase:
         # Advance the last input-header anchor by elapsed replay time instead.
         stamp_ns = self.header_anchor_ns + (clock_ns-self.clock_anchor_ns)
         return self._advance(stamp_ns, "watchdog")
-
-
 
 
