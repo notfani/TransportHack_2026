@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "files": [
+    {
+      "source": "dataset/tram_vehicle_msgs/CMakeLists.txt",
+      "target": "tram_vehicle_msgs/CMakeLists.txt",
+      "sha256": "c334213a3762afb1137c6c08662f03c7bdb9a2c9ac4cc003cfe39fbc1d1b347e"
+    },
+    {
+      "source": "dataset/tram_vehicle_msgs/msg/DriverControllerCommand.msg",
+      "target": "tram_vehicle_msgs/msg/DriverControllerCommand.msg",
+      "sha256": "fe294e3cd4132ed8dd732d677e78196ae882d2be5468e76d029ea785615517fb"
+    },
+    {
+      "source": "dataset/tram_vehicle_msgs/msg/VelocitySensor.msg",
+      "target": "tram_vehicle_msgs/msg/VelocitySensor.msg",
+      "sha256": "7cf37396bdd5a37f2154c16031dfa9bf233858b1d9ffb5900b72951c12446319"
+    },
+    {
+      "source": "role4_local_fix/required_maintainer",
+      "target": "tram_vehicle_msgs/package.xml",
+      "sha256": "e7d47100ce31ab0b1d7ac3cd37ced8ddc0e0052e41de8ef5d7389a4ad2d86621"
+    },
+    {
+      "source": "release/data/drive_table.json",
+      "target": "tram_odometry/config/drive_table.json",
+      "sha256": "2def5796cf03d0e09433b1cd2b9c2b3e49536244288ed9cfc84e063ca2f28b68"
+    },
+    {
+      "source": "release/position/route_bundle.json",
+      "target": "tram_odometry/config/route_bundle.json",
+      "sha256": "7fa033c603f9ab6bd7904963d7785c2d362cfbe28d1aecb88cf7b7aab9fe50bb"
+    },
+    {
+      "source": "release/position/route_localizer.py",
+      "target": "tram_odometry/tram_odometry/route_localizer.py",
+      "sha256": "2c44f2c3634650317ab999da293d79339668ecc3023ab8446d02a234309803c1"
+    },
+    {
+      "source": "release/tram_estimator/__init__.py",
+      "target": "tram_odometry/tram_estimator/__init__.py",
+      "sha256": "00f45a27e12e4d637f3902193832640fdf7669053d3f43888abee8a61ddc8261"
+    },
+    {
+      "source": "release/tram_estimator/core.py",
+      "target": "tram_odometry/tram_estimator/core.py",
+      "sha256": "a82de546c20cb90a0a98a3fcd31a10c377072eeb3c32b6f4d762bc481e809122"
+    },
+    {
+      "source": "release/tram_estimator/drive.py",
+      "target": "tram_odometry/tram_estimator/drive.py",
+      "sha256": "e2c84fdb65a9c677e14f2a9180d4d159e79bd6909a2b20ab7ac9f245052f7283"
+    }
+  ],
+  "note": "Role 3 source file hashes plus local Role 4 ROS manifest correction; complete local hashes in team_ws/INTEGRATION_MANIFEST.json."
+}

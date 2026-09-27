@@ -1,0 +1,40 @@
+{
+  "physical": {
+    "mass_kg": 24000.0,
+    "traction_accel": 0.9027744107965847,
+    "traction_notch": 8.42573509259338,
+    "traction_exponent": 1.3485517510311007,
+    "brake_accel": 1.180676246634639,
+    "brake_exponent": 0.5888221137162031,
+    "specific_power": 5.95247411930341,
+    "rolling_accel": 0.012211329238128416,
+    "linear_drag": 0.0,
+    "quadratic_drag": 0.0,
+    "max_force_n": 48000.0,
+    "adhesion_cap": 0.2,
+    "max_accel": 2.0,
+    "max_speed": 25.0,
+    "max_dt": 0.5,
+    "accel_uncertainty": 0.35,
+    "scale_min": 0.65,
+    "scale_max": 1.35,
+    "adaptation_rate": 0.08,
+    "adaptation_max_step_per_s": 0.025,
+    "min_trust": 0.9,
+    "speeds": [],
+    "drive_table": []
+  },
+  "selected": "hybrid_memory",
+  "uses_memory": true,
+  "min_speed": 0.5,
+  "max_speed": 15.0,
+  "feature_names": [
+    "u",
+    "v",
+    "u_ema_0.2",
+    "u_ema_1",
+    "u_ema_3",
+    "last_trusted_accel",
+    "trusted_age"
+  ]
+}

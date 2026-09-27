@@ -1,0 +1,42 @@
+tram_odometry:
+  ros__parameters:
+    use_sim_time: true
+    require_sim_time: true
+    wheel_input_unit: kmh
+    drive_model_kind: hybrid
+    # Use table for direct comparison with the prior ROS runtime.
+    watchdog_after_s: 0.06
+    watchdog_period_s: 0.02
+    command_timeout_s: 0.2
+    missing_command_sigma_mps2: 1.0
+    # Master initializes position; rover resolves otherwise ambiguous heading.
+    # Master ENU velocity checks heading only. No late tracking/speed learning.
+    start_mode: gnss
+    # Refinement duration AFTER the first accepted fix; late first fix allowed.
+    # Zero disables GNSS initialization. No automatic deadline from node start.
+    initialization_window_s: 3.0
+    initial_fix_topic: /sensing/gnss/master/fix
+    rover_fix_topic: /sensing/gnss/rover/fix
+    master_velocity_topic: /sensing/gnss/master/vel
+    # Optional SHA256 pin for a custom local bundle; schema/units always checked.
+    route_bundle_sha256: ""
+    route_name: auto
+    start_chainage_m: 0.0
+    start_x_m: 0.0
+    start_y_m: 0.0
+    start_z_m: 0.0
+    start_yaw_rad: 0.0
+    map_frame_id: pathgraph
+    relative_frame_id: odom_relative
+    # Legacy name: XY/chainage is the master reference projected onto the map.
+    # Z uses the empirical calibrated map profile; no surveyed body transform.
+    child_frame_id: base_link
+    # Rigid transform from calibrated pathgraph to the organizer-confirmed frame.
+    output_yaw_rad: 0.0
+    output_x_m: 0.0
+    output_y_m: 0.0
+    output_z_m: 0.0
+    # Engineering uncertainty floors; not validated statistical confidence bounds.
+    map_sigma_xy_m: 3.0
+    map_sigma_z_m: 5.0
+    map_sigma_yaw_rad: 0.2

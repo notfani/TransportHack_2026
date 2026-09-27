@@ -1,0 +1,17 @@
+ПОЛЕ 1 — Ссылка на пакет(ы) ROS 2 Humble
+https://github.com/notfani/TransportHack_2026
+
+ПОЛЕ 2 — Ссылка на инструкцию для жюри
+https://github.com/notfani/TransportHack_2026/blob/main/docs/INSTRUKCIYA.md
+
+ПОЛЕ 3 — Описание математической модели
+https://github.com/notfani/TransportHack_2026/blob/main/docs/MODEL.md
+
+ПОЛЕ 4 — Допущения, ограничения, параметры
+https://github.com/notfani/TransportHack_2026/blob/main/docs/ASSUMPTIONS.md
+
+ПОЛЕ 5 — Точность и быстродействие
+https://github.com/notfani/TransportHack_2026/blob/main/docs/ACCURACY.md
+
+ПОЛЕ 6 — Ограничения и план после хакатона
+https://github.com/notfani/TransportHack_2026/blob/main/docs/LIMITATIONS.md
